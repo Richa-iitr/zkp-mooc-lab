@@ -207,7 +207,22 @@ template RightShift(b, shift) {
     signal input x;
     signal output y;
 
-    // TODO
+    //inefficient implementation
+    component checkLenX = CheckBitLength(b);
+    checkLenX.in <== x;
+    1 === checkLenX.out;
+
+    var yLen = b-shift;
+
+    var p = 2 ** shift;
+    signal inter <-- x \ p;
+    y <== inter;
+    component checkLenY = CheckBitLength(yLen);
+    checkLenY.in <== y;
+    1 === checkLenY.out;
+
+
+
 }
 
 /*
