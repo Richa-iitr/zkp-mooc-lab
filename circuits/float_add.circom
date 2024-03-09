@@ -283,8 +283,13 @@ template LeftShift(shift_bound) {
     signal input shift;
     signal input skip_checks;
     signal output y;
-
-    // TODO
+    assert(skip_checks == 1 || shift < shift_bound);
+    assert(skip_checks == 1 || shift >= 0);
+    
+    // under-constrained
+    signal pow <-- 2 ** shift;
+    signal inter <-- x * pow;
+    y <== inter;
 }
 
 /*
