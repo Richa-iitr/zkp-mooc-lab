@@ -148,7 +148,6 @@ template CheckBitLength(b) {
     signal input in;
     signal output out;
 
-    // inefficient impl
     var sum = 0;
     signal bits[b];
     for(var i = 0;i<b;i++){
