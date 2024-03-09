@@ -149,15 +149,16 @@ template CheckBitLength(b) {
     signal output out;
 
     // inefficient impl
-    component n2b = Num2Bits(254);
-    n2b.in <== in;
-    component b2n = Bits2Num(b);
-    for(var i=0;i<b;i++){
-        b2n.bits[i] <== n2b.bits[i];
+    var sum = 0;
+    signal bits[b];
+    for(var i = 0;i<b;i++){
+        bits[i] <-- (in >> i) & 1;
+        bits[i] * (1 - bits[i]) === 0;
+        sum += 2**i * bits[i];
     }
     component isEq = IsEqual();
     isEq.in[0] <== in;
-    isEq.in[1] <== b2n.out;
+    isEq.in[1] <== sum;
     out <== isEq.out;    
 }
 
