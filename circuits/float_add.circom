@@ -268,6 +268,14 @@ template RoundAndCheck(k, p, P) {
     m_out <== if_else[1].out;
 }
 
+function log2(n) {
+    var i = 0;
+    while (n > 1) {
+        n = n / 2;
+        i = i + 1;
+    }
+    return i;
+}
 /*
  * Left-shifts `x` by `shift` bits to output `y`.
  * Enforces 0 <= `shift` < `shift_bound`.
@@ -281,10 +289,21 @@ template LeftShift(shift_bound) {
     assert(skip_checks == 1 || shift < shift_bound);
     assert(skip_checks == 1 || shift >= 0);
     
-    // under-constrained
-    signal pow <-- 2 ** shift;
-    signal inter <-- x * pow;
-    y <== inter;
+    // var log_ = log2(8);
+    // log(log_);
+    // component num2bits = Num2Bits(b);
+    // num2bits.in <== x;
+
+    // var bits[b];
+    // for (var i = 0; i < b; i++) {
+    //     bits[i] = 0;
+    // }
+    // for (var i = shift; i < b; i++) {
+    //     bits[i] = num2bits.bits[i-shift];
+    // }
+    // component bits2num = Bits2Num(b);
+    // bits2num.bits <== bits;
+    // y <== bits2num.out; 
 }
 
 /*
