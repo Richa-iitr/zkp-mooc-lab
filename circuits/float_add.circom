@@ -269,13 +269,14 @@ template RoundAndCheck(k, p, P) {
 }
 
 function log2(n) {
-    var i = 0;
-    while (n > 1) {
-        n = n / 2;
-        i = i + 1;
+    var x = 1, p = 1;
+    while (x < n) {
+        x *= 2;
+        p++;
     }
-    return i;
+    return p;
 }
+
 /*
  * Left-shifts `x` by `shift` bits to output `y`.
  * Enforces 0 <= `shift` < `shift_bound`.
@@ -286,24 +287,34 @@ template LeftShift(shift_bound) {
     signal input shift;
     signal input skip_checks;
     signal output y;
-    assert(skip_checks == 1 || shift < shift_bound);
-    assert(skip_checks == 1 || shift >= 0);
-    
-    // var log_ = log2(8);
-    // log(log_);
-    // component num2bits = Num2Bits(b);
-    // num2bits.in <== x;
+    // assert(skip_checks == 1 || shift < shift_bound);
+    // assert(skip_checks == 1 || shift >= 0);
 
-    // var bits[b];
-    // for (var i = 0; i < b; i++) {
-    //     bits[i] = 0;
-    // }
-    // for (var i = shift; i < b; i++) {
-    //     bits[i] = num2bits.bits[i-shift];
-    // }
-    // component bits2num = Bits2Num(b);
-    // bits2num.bits <== bits;
-    // y <== bits2num.out; 
+    var n = log2(shift_bound);
+    component lt = LessThan(shift_bound);
+    lt.in[0] <== shift;
+    lt.in[1] <== shift_bound;
+    (1 - lt.out) * (1 - skip_checks) === 0;
+
+    var sum_of_bits = 0;
+    component ite[n];
+    var shift_val = 1;
+    signal bits[n];
+    for (var i = 0; i < n; i++) {
+        bits[i] <-- (shift >> i) & 1;
+        sum_of_bits += (2 ** i) * bits[i];
+    }
+    (sum_of_bits - shift) * (1-skip_checks) === 0;
+
+    for (var i = 0; i < n; i++) {
+        ite[i] = IfThenElse();
+        ite[i].cond <== bits[i];
+        ite[i].L <== shift_val * (2 ** (2 ** i));
+        ite[i].R <== shift_val;
+        shift_val = ite[i].out;
+    }
+
+    y <== x * shift_val;
 }
 
 /*
@@ -319,6 +330,23 @@ template MSNZB(b) {
     signal output one_hot[b];
 
     // TODO
+    component n2b = Num2Bits(b);
+    n2b.in <== in;
+    var bits[b] = n2b.bits;
+    var flag = 0;
+    var oh[b];
+     
+    for(var i=b-1;i>=0;i--) {
+        oh[i] = 0; 
+        if(flag == 0 && bits[i] == 1) {
+            oh[i] = 1;
+            flag = 1;
+        }     
+    }
+    assert(flag == 1 || skip_checks == 1);
+    for(var i=0;i<b;i++) {
+        one_hot[i] <== oh[i];
+    }
 }
 
 /*
