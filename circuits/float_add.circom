@@ -287,11 +287,9 @@ template LeftShift(shift_bound) {
     signal input shift;
     signal input skip_checks;
     signal output y;
-    // assert(skip_checks == 1 || shift < shift_bound);
-    // assert(skip_checks == 1 || shift >= 0);
 
     var n = log2(shift_bound);
-    component lt = LessThan(shift_bound);
+    component lt = LessThan(n);
     lt.in[0] <== shift;
     lt.in[1] <== shift_bound;
     (1 - lt.out) * (1 - skip_checks) === 0;
@@ -300,11 +298,17 @@ template LeftShift(shift_bound) {
     component ite[n];
     var shift_val = 1;
     signal bits[n];
+
     for (var i = 0; i < n; i++) {
         bits[i] <-- (shift >> i) & 1;
+        (1 - bits[i]) * bits[i] === 0;
         sum_of_bits += (2 ** i) * bits[i];
     }
-    (sum_of_bits - shift) * (1-skip_checks) === 0;
+
+    component eq = IsEqual();
+    eq.in[0] <== sum_of_bits;
+    eq.in[1] <== shift;
+    (1 - eq.out) * (1-skip_checks) === 0;
 
     for (var i = 0; i < n; i++) {
         ite[i] = IfThenElse();
