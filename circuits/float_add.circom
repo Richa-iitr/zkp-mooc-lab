@@ -330,23 +330,23 @@ template MSNZB(b) {
     signal output one_hot[b];
 
     // TODO
-    component n2b = Num2Bits(b);
-    n2b.in <== in;
-    var bits[b] = n2b.bits;
-    var flag = 0;
-    var oh[b];
+    // component n2b = Num2Bits(b);
+    // n2b.in <== in;
+    // var bits[b] = n2b.bits;
+    // var flag = 0;
+    // var oh[b];
      
-    for(var i=b-1;i>=0;i--) {
-        oh[i] = 0; 
-        if(flag == 0 && bits[i] == 1) {
-            oh[i] = 1;
-            flag = 1;
-        }     
-    }
-    assert(flag == 1 || skip_checks == 1);
-    for(var i=0;i<b;i++) {
-        one_hot[i] <== oh[i];
-    }
+    // for(var i=b-1;i>=0;i--) {
+    //     oh[i] = 0; 
+    //     if(flag == 0 && bits[i] == 1) {
+    //         oh[i] = 1;
+    //         flag = 1;
+    //     }     
+    // }
+    // assert(flag == 1 || skip_checks == 1);
+    // for(var i=0;i<b;i++) {
+    //     one_hot[i] <== oh[i];
+    // }
 }
 
 /*
