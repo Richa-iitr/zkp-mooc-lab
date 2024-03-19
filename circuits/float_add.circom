@@ -342,6 +342,9 @@ template LeftShift(shift_bound) {
  * If `skip_checks` = 1, then we don't care about the output and the non-zero constraint is not enforced.
  */
 template MSNZB(b) {
+
+    // 149 (required 143)
+    assert(b < 254);
     signal input in;
     signal input skip_checks;
     signal output one_hot[b];
@@ -394,7 +397,18 @@ template Normalize(k, p, P) {
     signal output m_out;
     assert(P > p);
 
-    // TODO
+    component msnzb = MSNZB(P+1);
+    msnzb.in <== m;
+    msnzb.skip_checks <== skip_checks;
+
+    var ex;
+    var f;
+    for(var i=0;i<P+1;i++) {
+        ex += msnzb.one_hot[i] * i;
+        f += msnzb.one_hot[i] * (1<<(P-i));
+    }
+    m_out <== m*f;
+    e_out <== e + ex - p;
 }
 
 /*
