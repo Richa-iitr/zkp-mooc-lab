@@ -424,5 +424,64 @@ template FloatAdd(k, p) {
     signal output e_out;
     signal output m_out;
 
-    // TODO
+    component wf = CheckWellFormedness(k, p);
+    wf.e <== e[0];
+    wf.m <== m[0];
+    component wf2 = CheckWellFormedness(k, p);
+    wf2.e <== e[1];
+    wf2.m <== m[1];
+
+    component lt = LessThan(k + p + 2);
+    signal ap1 <== (1<<(p+1)) * e[0]  + m[0];
+    signal ap2 <== (1<<(p+1)) * e[1]  + m[1];
+    lt.in[0] <== ap1;
+    lt.in[1] <== ap2;
+
+    signal he,le,hm,lm;
+    component sw1 = Switcher();
+    sw1.sel <== lt.out;
+    sw1.L <== e[0];
+    sw1.R <== e[1];
+    he <== sw1.outL;
+    le <== sw1.outR;
+
+    component sw2 = Switcher();
+    sw2.sel <== lt.out;
+    sw2.L <== m[0];
+    sw2.R <== m[1];
+    hm <== sw2.outL;
+    lm <== sw2.outR;
+
+    signal shift <== he - le;
+    component z = IsZero();
+    z.in <== he;
+
+    component lt1 = LessThan(k);
+    lt1.in[0] <== (p+1);
+    lt1.in[1] <== shift;
+
+    signal gt <== lt1.out;
+    component or = OR();
+    or.a <== z.out;
+    or.b <== gt;
+    signal skip_checks <== or.out;
+    component ls = LeftShift(p+2);
+    ls.x <== hm;
+    ls.shift <== shift;
+    ls.skip_checks <== skip_checks;
+
+    signal hm_shifted <== ls.y;
+    signal m_ <== hm_shifted + lm;
+
+    component norm = Normalize(k, p, 2*p+1);
+    norm.m <== m_;
+    norm.e <== le;
+    norm.skip_checks <== skip_checks;
+
+    component rc = RoundAndCheck(k, p, 2*p+1);
+    rc.e <== norm.e_out;
+    rc.m <== norm.m_out;
+
+    e_out <-- skip_checks ? he : rc.e_out;
+    m_out <-- skip_checks ? hm : rc.m_out;
 }
