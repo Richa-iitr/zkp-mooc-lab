@@ -330,7 +330,11 @@ template LeftShift(shift_bound) {
         ite[i].R <== shift_val;
         shift_val = ite[i].out;
     }
-
+    component if_else = IfThenElse();
+    if_else.cond <== skip_checks;
+    if_else.L <== 0;
+    if_else.R <== shift_val;
+    shift_val = if_else.out;
     y <== x * shift_val;
 }
 
@@ -434,28 +438,29 @@ template FloatAdd(k, p) {
     component lt = LessThan(k + p + 2);
     signal ap1 <== (1<<(p+1)) * e[0]  + m[0];
     signal ap2 <== (1<<(p+1)) * e[1]  + m[1];
-    lt.in[0] <== ap1;
-    lt.in[1] <== ap2;
+    lt.in[0] <== ap2;
+    lt.in[1] <== ap1;
 
     signal he,le,hm,lm;
     component sw1 = Switcher();
     sw1.sel <== lt.out;
     sw1.L <== e[0];
     sw1.R <== e[1];
-    he <== sw1.outL;
-    le <== sw1.outR;
+    he <== sw1.outR;
+    le <== sw1.outL;
 
     component sw2 = Switcher();
     sw2.sel <== lt.out;
     sw2.L <== m[0];
     sw2.R <== m[1];
-    hm <== sw2.outL;
-    lm <== sw2.outR;
+    hm <== sw2.outR;
+    lm <== sw2.outL;
 
     signal shift <== he - le;
     component z = IsZero();
     z.in <== he;
 
+    // p+1 < shift
     component lt1 = LessThan(k);
     lt1.in[0] <== (p+1);
     lt1.in[1] <== shift;
@@ -464,6 +469,7 @@ template FloatAdd(k, p) {
     component or = OR();
     or.a <== z.out;
     or.b <== gt;
+    
     signal skip_checks <== or.out;
     component ls = LeftShift(p+2);
     ls.x <== hm;
